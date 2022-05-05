@@ -54,10 +54,30 @@ public class RESTv7Harvester extends DspaceHarvester {
                 .header("Authorization", this.authToken)
                 .asJson()).getBody();
     }
-
+    
+    
+    public JsonNode getCollectionPage(int page, int size) {
+        return updateCSRF(Unirest.get(this.conf.getProperty("endpoint") + "/core/collections?page=" + page + "&size=" + size)
+              .header("X-XSRF-TOKEN", this.csrfToken)
+              .header("Authorization", this.authToken)
+              .asJson()).getBody();
+    }
+    
+    public JsonNode getCommunityPage(int page, int size) {
+        return updateCSRF(Unirest.get(this.conf.getProperty("endpoint") + "/core/communities?page=" + page + "&size=" + size)
+              .header("X-XSRF-TOKEN", this.csrfToken)
+              .header("Authorization", this.authToken)
+              .asJson()).getBody();
+    }
+    
     @Override
     public Iterator<Item> harvestItems() {
         return new ItemItr((this));
+    }
+    
+    @Override
+    public Iterator<Collection> harvestCollection() {
+        return new CollectionItr((this));
     }
 
     private JsonNode calllinks(String link) {
@@ -94,18 +114,104 @@ public class RESTv7Harvester extends DspaceHarvester {
         return resp;
 
     }
+    
+    public Collection getCollection (JSONObject jsonObject) {
+        Collection resp = new Collection();
+        System.out.println (jsonObject);
+
+        resp.setId(jsonObject.getString("id"));
+        resp.setUri(this.conf.getProperty("uriPrefix") + jsonObject.getString("handle"));
+        resp.setUrl(jsonObject.getJSONObject("_links").getJSONObject("self").getString("href"));
+        
+        JsonNode body = calllinks (jsonObject.getJSONObject("_links").getJSONObject("parentCommunity").getString("href"));
+        System.out.println ("Parent");
+        resp.setIsPartOfCommunityID(Lists.newArrayList());
+        
+        if (body.getObject().has("metadata")){
+            System.out.println (body.getObject().getJSONObject("metadata").getJSONArray("dc.identifier.uri").getJSONObject(0).getString("value"));
+            resp.getIsPartOfCommunityID().add(body.getObject().getJSONObject("metadata").getJSONArray("dc.identifier.uri").getJSONObject(0).getString("value"));
+        
+        }
+        
+        System.out.println ("Items");
+        JsonNode bodyItems = calllinks (jsonObject.getJSONObject("_links").getJSONObject("harvester").getString("href"));
+        System.out.println (bodyItems);
+        
+        resp.setListOfStatements(Lists.newArrayList());
+        resp.setListOfStatementLiterals(Lists.newArrayList());
+        System.out.println (resp.getUrl());
+        List<Object> metadataMapping = metadataMapping(resp.getUri(), jsonObject.getJSONObject("metadata"));
+        for (Object obj : metadataMapping) {
+            if (obj instanceof StatementLiteral) {
+                resp.getListOfStatementLiterals().add((StatementLiteral) obj);
+            } else {
+                resp.getListOfStatements().add((Statement) obj);
+            }
+        }
+        
+        
+        
+    
+        return resp;
+    }
+    
+    
+        public Community getCommunity (JSONObject jsonObject) {
+        Community resp = new Community();
+        System.out.println (jsonObject);
+
+        resp.setId(jsonObject.getString("id"));
+        resp.setUri(this.conf.getProperty("uriPrefix") + jsonObject.getString("handle"));
+        resp.setUrl(jsonObject.getJSONObject("_links").getJSONObject("self").getString("href"));
+        
+        JsonNode parent = calllinks (jsonObject.getJSONObject("_links").getJSONObject("parentCommunity").getString("href"));
+        System.out.println ("Parent");
+        resp.setIsSubcommunityOfID(Lists.newArrayList());
+        
+        if (parent.getObject().has("metadata")){
+            System.out.println (parent.getObject().getJSONObject("metadata").getJSONArray("dc.identifier.uri").getJSONObject(0).getString("value"));
+            //resp.setIsSubcommunityOfID().add(body.getObject().getJSONObject("metadata").getJSONArray("dc.identifier.uri").getJSONObject(0).getString("value"));
+            resp.getIsSubcommunityOfID().add(parent.getObject().getJSONObject("metadata").getJSONArray("dc.identifier.uri").getJSONObject(0).getString("value"));
+        }
+        
+        
+        JsonNode subcom = calllinks (jsonObject.getJSONObject("_links").getJSONObject("subcommunities").getString("href"));
+        resp.hasSubCommunity(Lists.newArrayList());
+        
+        if (subcom.getObject().has("metadata")){
+            String urisub = subcom.getObject().getJSONObject("metadata").getJSONArray("dc.identifier.uri").getJSONObject(0).getString("value");
+            
+        }
+        
+       
+        //System.out.println ("Items");
+        //JsonNode bodyItems = calllinks (jsonObject.getJSONObject("_links").getJSONObject("harvester").getString("href"));
+        //System.out.println (bodyItems);
+        
+        resp.setListOfStatements(Lists.newArrayList());
+        resp.setListOfStatementLiterals(Lists.newArrayList());
+        System.out.println (resp.getUrl());
+        List<Object> metadataMapping = metadataMapping(resp.getUri(), jsonObject.getJSONObject("metadata"));
+        for (Object obj : metadataMapping) {
+            if (obj instanceof StatementLiteral) {
+                resp.getListOfStatementLiterals().add((StatementLiteral) obj);
+            } else {
+                resp.getListOfStatements().add((Statement) obj);
+            }
+        }
+        
+        
+        
+    
+        return resp;
+    }
 
     @Override
     public Iterator<Community> harvestCommunity() {
         //TODO
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new CommunityItr((this));
     }
 
-    @Override
-    public Iterator<Collection> harvestCollection() {
-        //TODO
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     @Override
     public Iterator<Repository> harvestRepository() {

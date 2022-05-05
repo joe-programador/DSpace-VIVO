@@ -16,9 +16,9 @@ public class ConsoleApplication {
         logger.info("Init Dspace Harvester...");
         runner.init();
         logger.info("Harvesting Items...");
-        runner.harvestItems();
+        //runner.harvestItems();
         logger.info("Harvesting Communities...");
-        //runner.harvestCommunities();
+        runner.harvestCommunities();
         logger.info("Harvesting Collections...");
         //runner.harvestCollections();
         logger.info("Harvesting Repositories...");
