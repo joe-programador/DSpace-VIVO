@@ -178,8 +178,29 @@ public class RESTv7Harvester extends DspaceHarvester {
         JsonNode subcom = calllinks (jsonObject.getJSONObject("_links").getJSONObject("subcommunities").getString("href"));
         resp.hasSubCommunity(Lists.newArrayList());
         
-        if (subcom.getObject().has("metadata")){
-            String urisub = subcom.getObject().getJSONObject("metadata").getJSONArray("dc.identifier.uri").getJSONObject(0).getString("value");
+      
+        if (subcom.getObject().has("_embedded")){
+            JSONArray jsonArray = subcom.getObject().getJSONObject("_embedded").getJSONArray("subcommunities");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObjectcom = jsonArray.getJSONObject(i);
+                Community community = this.getCommunity(jsonObjectcom);
+                resp.getHasSubCommunity().add(community);
+            }
+            
+            
+        }
+        
+        JsonNode collections = calllinks (jsonObject.getJSONObject("_links").getJSONObject("collections").getString("href"));
+        resp.setHasCollection(Lists.newArrayList());
+        
+        if (collections.getObject().has("_embedded")){
+            JSONArray jsonArray = collections.getObject().getJSONObject("_embedded").getJSONArray("collections");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObjectcol = jsonArray.getJSONObject(i);
+                Collection collection = this.getCollection(jsonObjectcol);
+                resp.getHasCollection().add(collection);
+            }
+            
             
         }
         
