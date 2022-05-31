@@ -12,17 +12,28 @@ public class ConsoleApplication {
     public static void main(String[] args) throws IOException {
 
         logger.info("Testing Dspace Harvester...");
+        logger.info("PARAMS...");
+        
         HarvesterRunner runner = new HarvesterRunner();
+        if (args.length == 1){
+            logger.info(args[0].toString());
+            runner.setPathConfigFile(args[0]);
+        }
         logger.info("Init Dspace Harvester...");
         runner.init();
         logger.info("Harvesting Items...");
-        //runner.harvestItems();
+        runner.harvestItems();
         logger.info("Harvesting Communities...");
-        runner.harvestCommunities();
+        //runner.harvestCommunities();
         logger.info("Harvesting Collections...");
         //runner.harvestCollections();
         logger.info("Harvesting Repositories...");
         //runner.harvestRepositories();
+    }
+    
+    public void principal () {
+        System.out.print ("Pricipal");
+    
     }
 
 }

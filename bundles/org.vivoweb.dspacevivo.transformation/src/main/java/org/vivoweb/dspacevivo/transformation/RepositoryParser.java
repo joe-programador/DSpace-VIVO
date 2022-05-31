@@ -40,7 +40,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  *
  */
 public class RepositoryParser {
-
+    
+        /**
+	 * @param args
+	 */
+	public void  runn(String[] args)  {
+            System.out.print("RUNNING");
+        
+        
+        }
+    
 	/**
 	 * @param args
 	 * @throws JsonProcessingException 

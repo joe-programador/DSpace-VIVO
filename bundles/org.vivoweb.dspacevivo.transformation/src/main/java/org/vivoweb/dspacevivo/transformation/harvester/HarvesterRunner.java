@@ -20,9 +20,21 @@ public class HarvesterRunner {
 
     private static Logger logger = LoggerFactory.getLogger(HarvesterRunner.class);
     private DspaceHarvester dh = null;
+    private static String pathConfigFile = null;
 
-    public void init() throws IOException {
+    public void setPathConfigFile(String pathConfigFile) {
+        HarvesterRunner.pathConfigFile = pathConfigFile;
+    }
+
+    public String getPathConfigFile() {
+        return pathConfigFile;
+    }
+
+    public void init( ) throws IOException {
         Properties conf = HarvesterConfiguration.getConf();
+        if (pathConfigFile != null ){
+           conf = HarvesterConfiguration.getConf( getPathConfigFile()); 
+        } 
         switch (conf.getProperty("type")) {
             case "RESTv7":
                 logger.info("Connecting to REST endpoint");
