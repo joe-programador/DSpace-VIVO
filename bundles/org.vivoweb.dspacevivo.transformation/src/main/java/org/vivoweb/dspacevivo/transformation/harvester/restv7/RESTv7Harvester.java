@@ -252,7 +252,7 @@ public class RESTv7Harvester extends DspaceHarvester {
                     continue;
                 }
                 String property = null;
-                String datatype = null;
+                String datatype = "http://www.w3.org/2001/XMLSchema#string";
                 switch (key) {
                     case "dc.title":
                         property = "http://purl.org/dc/terms/title";

@@ -145,7 +145,7 @@ public class OAIPMHResponse {
         for (Element e : list.get(0).children()) {
             String text = e.text();
             String tag = e.tagName();
-
+            String literalType = "http://www.w3.org/2001/XMLSchema#string"; 
             switch (tag) {
                 case "dc:identifier":
                     resp.setUri(text);
@@ -153,12 +153,15 @@ public class OAIPMHResponse {
                 case "dc:bundle":
                     resp.setDspaceBitstreamURL(text);
                     break;
+                case "dc:date":
+                    literalType = "http://www.w3.org/2001/XMLSchema#dateTime"; 
+                    
                 default:
                     StatementLiteral statementLiteral = new StatementLiteral();
                     statementLiteral.setSubjectUri(uri);
                     statementLiteral.setPredicateUri(tag.replace("dc:", "http://purl.org/dc/terms/"));
                     statementLiteral.setObjectLiteral(text);
-                    statementLiteral.setLiteralType(null);
+                    statementLiteral.setLiteralType(literalType);
                     resp.getListOfStatementLiterals().add(statementLiteral);
 
             }
