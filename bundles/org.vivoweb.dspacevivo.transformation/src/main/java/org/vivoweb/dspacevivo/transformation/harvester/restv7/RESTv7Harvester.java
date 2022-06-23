@@ -252,7 +252,7 @@ public class RESTv7Harvester extends DspaceHarvester {
                     continue;
                 }
                 String property = null;
-                String datatype = "http://www.w3.org/2001/XMLSchema#string";
+                String datatype = "xsd:string";
                 switch (key) {
                     case "dc.title":
                         property = "http://purl.org/dc/terms/title";
@@ -298,7 +298,7 @@ public class RESTv7Harvester extends DspaceHarvester {
                         break;
                     case "dc.date":
                         property = "http://purl.org/dc/terms/date";
-                        datatype = "http://www.w3.org/2001/XMLSchema#dateTime";
+                        datatype = "xsd:dateTime";
                         break;
                     case "dc.format":
                         property = "http://purl.org/dc/terms/format";
@@ -311,15 +311,15 @@ public class RESTv7Harvester extends DspaceHarvester {
                         break;
                     case "dc.date.accessioned":
                         property = "http://purl.org/dc/terms/accessioned";
-                        datatype = "http://www.w3.org/2001/XMLSchema#dateTime";
+                        datatype = "xsd:dateTime";
                         break;
                     case "dc.date.available":
                         property = "http://purl.org/dc/terms/available";
-                        datatype = "http://www.w3.org/2001/XMLSchema#dateTime";
+                        datatype = "xsd:dateTime";
                         break;
                     case "dc.date.issued":
                         property = "http://purl.org/dc/terms/issued";
-                        datatype = "http://www.w3.org/2001/XMLSchema#dateTime";
+                        datatype = "xsd:dateTime";
                         break;
                     case "dc.language.iso":
                         property = "http://purl.org/dc/terms/language";

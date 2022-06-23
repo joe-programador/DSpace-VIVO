@@ -145,7 +145,7 @@ public class OAIPMHResponse {
         for (Element e : list.get(0).children()) {
             String text = e.text();
             String tag = e.tagName();
-            String literalType = "http://www.w3.org/2001/XMLSchema#string"; 
+            String literalType = "xsd:string"; 
             switch (tag) {
                 case "dc:identifier":
                     resp.setUri(text);
@@ -154,7 +154,7 @@ public class OAIPMHResponse {
                     resp.setDspaceBitstreamURL(text);
                     break;
                 case "dc:date":
-                    literalType = "http://www.w3.org/2001/XMLSchema#dateTime"; 
+                    literalType = "xsd:dateTime"; 
                     
                 default:
                     StatementLiteral statementLiteral = new StatementLiteral();
