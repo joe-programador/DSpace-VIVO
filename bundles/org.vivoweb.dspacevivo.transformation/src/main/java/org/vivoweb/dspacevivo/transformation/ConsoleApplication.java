@@ -5,10 +5,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vivoweb.dspacevivo.transformation.harvester.HarvesterRunner;
 
+/**
+ * Run standalone version for test purposes
+ * @author jorgg
+ */
 public class ConsoleApplication {
 
     private static Logger logger = LoggerFactory.getLogger(ConsoleApplication.class);
-
+    
+    /**
+     * Run the repository data harvesting and transformation process
+     * @param args Config file path (Optional)
+     * @throws IOException 
+     */
     public static void main(String[] args) throws IOException {
 
         logger.info("Testing Dspace Harvester...");
@@ -31,9 +40,4 @@ public class ConsoleApplication {
         //runner.harvestRepositories();
     }
     
-    public void principal () {
-        System.out.print ("Pricipal");
-    
-    }
-
 }

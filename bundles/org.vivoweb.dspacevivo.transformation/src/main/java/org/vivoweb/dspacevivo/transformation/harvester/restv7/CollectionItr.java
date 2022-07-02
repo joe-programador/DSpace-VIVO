@@ -7,8 +7,11 @@ import kong.unirest.json.JSONArray;
 import kong.unirest.json.JSONObject;
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.vivoweb.dspacevivo.model.Collection;
-import org.vivoweb.dspacevivo.model.Item;
 
+/**
+ * Harvest collection metadata for Restv7 Harvester
+ * @author jorgg
+ */
 public class CollectionItr implements Iterator<Collection> {
 
     private int page = 0;
@@ -17,10 +20,18 @@ public class CollectionItr implements Iterator<Collection> {
     private Collection nextItem = null;
     private RESTv7Harvester endpoint;
 
+    /**
+     * Collection iterator Constructor 
+     * @param endpoint Restv7Harvester instance
+     */
     public CollectionItr(RESTv7Harvester endpoint) {
         this.endpoint = endpoint;
     }
 
+    /**
+     * Check if exist a next collection in the response and collect metadata
+     * @return 
+     */
     @Override
     public boolean hasNext() {
         if (!restPage.isEmpty()) {
@@ -41,6 +52,10 @@ public class CollectionItr implements Iterator<Collection> {
         return !restPage.isEmpty();
     }
 
+    /**
+     * Recover the next Collection into the repository
+     * @return Collectio object
+     */
     @Override
     public Collection next() {
         Collection get = restPage.get(0);

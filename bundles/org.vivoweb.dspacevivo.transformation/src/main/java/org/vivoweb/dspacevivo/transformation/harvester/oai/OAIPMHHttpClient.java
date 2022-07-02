@@ -25,12 +25,30 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Generate OAI-PMH request and handle the response
+ * @author jorgg
+ */
 public class OAIPMHHttpClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(OAIPMHHttpClient.class);
 
     private boolean ignoreSSLWarnings;
 
+    /**
+     * Send a request via OAI-PMH to repository
+     * @param baseURI Repository uri base
+     * @param verb OAI-PMH verb
+     * @param set Set
+     * @param from From date
+     * @param until Until date
+     * @param metadataPrefix Metadata format
+     * @param token token to iterative harveest
+     * @param identifier item identifier
+     * @return String response result of the request
+     * @throws IOException
+     * @throws URISyntaxException 
+     */    
     public String doRequest(
             URI baseURI, String verb, String set, String from, String until, String metadataPrefix, String token,
             String identifier)
@@ -78,6 +96,7 @@ public class OAIPMHHttpClient {
                 @Override
                 public String handleResponse(final HttpResponse response) throws IOException {
                     int status = response.getStatusLine().getStatusCode();
+                    LOG.info("Status: {} ", status);
                     if (status >= 200 && status < 300) {
                         HttpEntity entity = response.getEntity();
                         if (entity == null) {
@@ -98,6 +117,11 @@ public class OAIPMHHttpClient {
         }
     }
 
+    /**
+     * Generate a httpclient
+     * @return
+     * @throws IOException 
+     */
     protected CloseableHttpClient getCloseableHttpClient() throws IOException {
         if (isIgnoreSSLWarnings()) {
             try {
@@ -114,11 +138,19 @@ public class OAIPMHHttpClient {
             return HttpClients.createDefault();
         }
     }
-
+    
+    /**
+     * Check if ssl warning is enable
+     * @return 
+     */
     public boolean isIgnoreSSLWarnings() {
         return ignoreSSLWarnings;
     }
 
+    /**
+     * Set ssl warning activate mode
+     * @param ignoreSSLWarnings 
+     */
     public void setIgnoreSSLWarnings(boolean ignoreSSLWarnings) {
         this.ignoreSSLWarnings = ignoreSSLWarnings;
     }

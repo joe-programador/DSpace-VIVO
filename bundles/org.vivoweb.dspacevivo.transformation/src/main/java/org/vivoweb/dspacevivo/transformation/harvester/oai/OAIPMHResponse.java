@@ -44,7 +44,10 @@ import org.vivoweb.dspacevivo.model.StatementLiteral;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
+/**
+ * Handle and transform OAI_PMH request response 
+ * @author jorgg
+ */
 public class OAIPMHResponse {
 
     private static final Logger LOG = LoggerFactory.getLogger(OAIPMHResponse.class);
@@ -53,28 +56,52 @@ public class OAIPMHResponse {
     private List<String> setSpec;
     private static String XSLT_FILENAME = "src/main/resources/aoi_dc.xslt";
     private Properties prop;
+    private Properties mapping;
 
+    /**
+     * Constructor with raw response result
+     * @param rawResponse 
+     */
     public OAIPMHResponse(String rawResponse) {
         this.rawResponse = rawResponse;
         this.setSpec = new ArrayList();
         parse();
     }
-
-    public OAIPMHResponse(String rawResponse, Properties p) {
+    
+    /**
+     * Constructor receiving raw response, config and mapping parameters
+     * @param rawResponse 
+     * @param p
+     * @param mapping 
+     */
+    public OAIPMHResponse(String rawResponse, Properties p , Properties mapping) {
         this.rawResponse = rawResponse;
         parse();
         this.prop = p;
         this.setSpec = new ArrayList();
+        this.mapping = mapping;
     }
 
+    /**
+     * Parse raw response to xml response
+     */
     private void parse() {
         this.xmlResponse = Jsoup.parse(rawResponse, "", Parser.xmlParser());
     }
 
+    /**
+     * Parse raw response to Document xml
+     * @param text
+     * @return 
+     */
     private static Document parse(String text) {
         return Jsoup.parse(text, "", Parser.xmlParser());
     }
 
+    /**
+     * Recover the resumption token for the next request
+     * @return 
+     */
     public Optional<String> getResumptionToken() {
         Optional<String> resumptionToken = Optional.empty();
         Elements elementsByTag = xmlResponse.getElementsByTag("resumptionToken");
@@ -88,22 +115,42 @@ public class OAIPMHResponse {
         return resumptionToken;
     }
 
+    /**
+     * Get raw response received
+     * @return 
+     */
     public String getRawResponse() {
         return rawResponse;
     }
 
+    /**
+     * Set raw response received
+     * @param rawResponse 
+     */
     public void setRawResponse(String rawResponse) {
         this.rawResponse = rawResponse;
     }
 
+    /**
+     * Get xml response format
+     * @return 
+     */
     public Document getXmlResponse() {
         return xmlResponse;
     }
 
+    /**
+     * Set xml response format
+     * @param xmlResponse 
+     */
     public void setXmlResponse(Document xmlResponse) {
         this.xmlResponse = xmlResponse;
     }
 
+    /**
+     * Initialize an instance of the collection and assign values
+     * @return Collection object
+     */
     public Collection modelCollection() {
         Collection col = new Collection();
         col.setId("");
@@ -116,6 +163,12 @@ public class OAIPMHResponse {
         return col;
     }
 
+    /**
+     * Initialize an instance of item and assign values
+     * @param doc
+     * @param head
+     * @return 
+     */
     public Item modelItem(Document doc, Document head) {
         Document result = doc;
         Item resp = new Item();
@@ -145,23 +198,21 @@ public class OAIPMHResponse {
         for (Element e : list.get(0).children()) {
             String text = e.text();
             String tag = e.tagName();
-            String literalType = "xsd:string"; 
             switch (tag) {
                 case "dc:identifier":
                     resp.setUri(text);
                     break;
                 case "dc:bundle":
                     resp.setDspaceBitstreamURL(text);
-                    break;
-                case "dc:date":
-                    literalType = "xsd:dateTime"; 
+                    break;      
                     
                 default:
                     StatementLiteral statementLiteral = new StatementLiteral();
                     statementLiteral.setSubjectUri(uri);
-                    statementLiteral.setPredicateUri(tag.replace("dc:", "http://purl.org/dc/terms/"));
+                    //statementLiteral.setPredicateUri(tag.replace("dc:", "http://purl.org/dc/terms/"));
+                    statementLiteral.setPredicateUri(this.mapping.getProperty(tag.replace(":",".")).split(";")[0]);
                     statementLiteral.setObjectLiteral(text);
-                    statementLiteral.setLiteralType(literalType);
+                    statementLiteral.setLiteralType(this.mapping.getProperty(tag.replace(":",".")).split(";")[1]);
                     resp.getListOfStatementLiterals().add(statementLiteral);
 
             }
@@ -171,10 +222,18 @@ public class OAIPMHResponse {
         return resp;
     }
 
+    /**
+     * Set the set or collection obtain in the response
+     * @return 
+     */
     public List<String> getSetSpec() {
         return setSpec;
     }
 
+    /**
+     * Iterate over the response and extract items metadata
+     * @return 
+     */
     public List<Item> modelItems() {
         List<Item> response = Lists.newArrayList();
         Document result = this.xmlResponse;
@@ -217,6 +276,14 @@ public class OAIPMHResponse {
         return response;
     }
 
+    /**
+     * Convert string response to Document xml
+     * @param st
+     * @return
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws IOException 
+     */
     public org.w3c.dom.Document parsexml(String st) throws SAXException, ParserConfigurationException, IOException {
         DocumentBuilderFactory domFact = DocumentBuilderFactory.newInstance();
         domFact.setNamespaceAware(true);
@@ -227,6 +294,15 @@ public class OAIPMHResponse {
 
     }
 
+    /**
+     * Recover all items in the response
+     * @return
+     * @throws TransformerException
+     * @throws XPathExpressionException
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws IOException 
+     */
     public List<Item> modelItemsxoai() throws TransformerException, XPathExpressionException, SAXException, ParserConfigurationException, IOException {
         InputStream toInputStream1 = IOUtils.toInputStream(this.rawResponse);
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
@@ -235,6 +311,15 @@ public class OAIPMHResponse {
         return extracttransform(xmlDocument);
     }
 
+    /**
+     * Recover all communities in the response
+     * @return
+     * @throws TransformerException
+     * @throws XPathExpressionException
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws IOException 
+     */
     public List<Community> modelCommunity() throws TransformerException, XPathExpressionException, SAXException, ParserConfigurationException, IOException {
         List<Community> lcom = new ArrayList();
 
@@ -257,6 +342,15 @@ public class OAIPMHResponse {
         return lcom;
     }
 
+    /**
+     * Recover repository metadata  
+     * @return
+     * @throws TransformerException
+     * @throws XPathExpressionException
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws IOException 
+     */   
     public List<Repository> modelRepository() throws TransformerException, XPathExpressionException, SAXException, ParserConfigurationException, IOException {
         List<Repository> lrepo = new ArrayList();
 
@@ -290,6 +384,15 @@ public class OAIPMHResponse {
         return lrepo;
     }
 
+    /**
+     * Recover response collections
+     * @return
+     * @throws TransformerException
+     * @throws XPathExpressionException
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws IOException 
+     */
     public List<Collection> modelCollections() throws TransformerException, XPathExpressionException, SAXException, ParserConfigurationException, IOException {
         List<Collection> lcol = new ArrayList();
 
@@ -311,6 +414,15 @@ public class OAIPMHResponse {
         return lcol;
     }
 
+    /**
+     * Recover items collections
+     * @return
+     * @throws TransformerException
+     * @throws XPathExpressionException
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws IOException 
+     */    
     public List<String> modelItemCollections() throws TransformerException, XPathExpressionException, SAXException, ParserConfigurationException, IOException {
         List<String> litems = new ArrayList();
         Document doc = this.xmlResponse;
@@ -327,6 +439,15 @@ public class OAIPMHResponse {
         return litems;
     }
 
+    /**
+     * Recover response set spect or collections 
+     * @return
+     * @throws TransformerException
+     * @throws XPathExpressionException
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws IOException 
+     */
     public List<String> modelSetSpec() throws TransformerException, XPathExpressionException, SAXException, ParserConfigurationException, IOException {
         List<String> lspec = new ArrayList();
         Document doc = this.xmlResponse;
@@ -343,6 +464,13 @@ public class OAIPMHResponse {
         return lspec;
     }
 
+    /**
+     * Transform xoai metadata format to oai_dc format and recover items
+     * @param xmlDocument
+     * @return
+     * @throws XPathExpressionException
+     * @throws TransformerException 
+     */
     public List<Item> extracttransform(org.w3c.dom.Document xmlDocument) throws XPathExpressionException, TransformerException {
         List<Item> resp = Lists.newArrayList();
         XPath xPath = XPathFactory.newInstance().newXPath();
@@ -390,7 +518,13 @@ public class OAIPMHResponse {
         }
         return resp;
     }
-
+    
+    /**
+     * Transform node xml to string representation
+     * @param node
+     * @return
+     * @throws TransformerException 
+     */
     public static String nodeToXML(Node node) throws TransformerException {
         StringWriter sw = new StringWriter();
         Transformer t = TransformerFactory.newInstance().newTransformer();
@@ -400,6 +534,14 @@ public class OAIPMHResponse {
         return sw.toString();
     }
 
+    /**
+     * Apply xslt transformation to response (Convert xoai to aoi_dc)
+     * @param xmlIn
+     * @param xsl
+     * @return
+     * @throws TransformerConfigurationException
+     * @throws TransformerException 
+     */
     public static String ApplyXSLT(String xmlIn, String xsl) throws TransformerConfigurationException, TransformerException {
         //StreamSource xslSource = new StreamSource(new StringReader(xsl));
         StreamSource xmlInSource = new StreamSource(new StringReader(xmlIn));
@@ -409,6 +551,11 @@ public class OAIPMHResponse {
         return xmlOutWriter.toString();
     }
 
+    /**
+     * Rename namespace to facilitate conversion format
+     * @param node
+     * @param namespace 
+     */
     public void renameNamespaceRecursive(Node node, String namespace) {
         org.w3c.dom.Document document = node.getOwnerDocument();
         if (node.getNodeType() == Node.ELEMENT_NODE) {

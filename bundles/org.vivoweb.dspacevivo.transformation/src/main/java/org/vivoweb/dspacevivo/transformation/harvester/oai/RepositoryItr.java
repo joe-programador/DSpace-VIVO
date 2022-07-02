@@ -8,16 +8,28 @@ import org.vivoweb.dspacevivo.model.Community;
 import org.vivoweb.dspacevivo.model.Item;
 import org.vivoweb.dspacevivo.model.Repository;
 
+/**
+ * Contains logic and model for iterative Repository harvester
+ * @author jorgg
+ */
 public class RepositoryItr implements Iterator<Repository> {
 
     private DspaceOAI dspaceHarvester;
     private List<Repository> oaiPage = null;
     private Item nextRepository = null;
 
+    /**
+     * Iterative Repository harvester constructor
+     * @param hr OAI harvester instance
+     */
     public RepositoryItr(DspaceOAI hr) {
         this.dspaceHarvester = hr;
     }
 
+    /**
+     * Check if it is possible to extract the following repository from the dspace and extract its metadata
+     * @return True or False depend if next repository can be harvested
+     */
     @Override
     public boolean hasNext() {
         if (oaiPage != null && !oaiPage.isEmpty()) {
@@ -33,7 +45,7 @@ public class RepositoryItr implements Iterator<Repository> {
                     responseXML = this.dspaceHarvester.getHttpClient().doRequest(this.dspaceHarvester.getBaseURI(), this.dspaceHarvester.getVerb(), this.dspaceHarvester.getSet(), this.dspaceHarvester.getFrom(), this.dspaceHarvester.getUntil(), this.dspaceHarvester.getMetadata(),
                             this.dspaceHarvester.getResumptionToken(), this.dspaceHarvester.getIdentifier());
 
-                    oaipmhResponse = new OAIPMHResponse(responseXML, dspaceHarvester.getConf());
+                    oaipmhResponse = new OAIPMHResponse(responseXML, dspaceHarvester.getConf() , dspaceHarvester.getMapping());
 
                     oaiPage = oaipmhResponse.modelRepository();
 
@@ -71,6 +83,10 @@ public class RepositoryItr implements Iterator<Repository> {
         return hasNext;
     }
 
+    /**
+     * Recover the next repository
+     * @return Repository object
+     */
     @Override
     public Repository next() {
         Repository get = oaiPage.get(0);

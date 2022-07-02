@@ -7,16 +7,28 @@ import java.util.Optional;
 import org.vivoweb.dspacevivo.model.Collection;
 import org.vivoweb.dspacevivo.model.Item;
 
+/**
+ * Contains logic and model for iterative collection harvester
+ * @author jorgg
+ */
 public class CollectionItr implements Iterator<Collection> {
 
     private DspaceOAI dspaceHarvester;
     private List<Collection> oaiPage = null;
     private Item nextCollection = null;
 
+    /**
+     * Iterative collection  constructor
+     * @param hr OAI harvester instance
+     */
     public CollectionItr(DspaceOAI hr) {
         this.dspaceHarvester = hr;
     }
 
+    /**
+     * Check if it is possible to extract the following collection from the repository and extract its metadata
+     * @return True or False depend if next collection can be harvested
+     */
     @Override
     public boolean hasNext() {
         if (oaiPage != null && !oaiPage.isEmpty()) {
@@ -32,7 +44,7 @@ public class CollectionItr implements Iterator<Collection> {
                     responseXML = this.dspaceHarvester.getHttpClient().doRequest(this.dspaceHarvester.getBaseURI(), this.dspaceHarvester.getVerb(), this.dspaceHarvester.getSet(), this.dspaceHarvester.getFrom(), this.dspaceHarvester.getUntil(), this.dspaceHarvester.getMetadata(),
                             this.dspaceHarvester.getResumptionToken(), this.dspaceHarvester.getIdentifier());
 
-                    oaipmhResponse = new OAIPMHResponse(responseXML, dspaceHarvester.getConf());
+                    oaipmhResponse = new OAIPMHResponse(responseXML, dspaceHarvester.getConf() , dspaceHarvester.getMapping());
                     oaiPage = oaipmhResponse.modelCollections();
 
                     for (Collection col : oaiPage) {
@@ -78,6 +90,10 @@ public class CollectionItr implements Iterator<Collection> {
         return hasNext;
     }
 
+    /**
+     * Recover the next collection inte the repository
+     * @return Collection object
+     */
     @Override
     public Collection next() {
         Collection get = oaiPage.get(0);

@@ -8,18 +8,30 @@ import kong.unirest.json.JSONObject;
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.vivoweb.dspacevivo.model.Item;
 
+/**
+ * Harvest item metadata for Restv7 Harvester
+ * @author jorgg
+ */
 public class ItemItr implements Iterator<Item> {
 
     private int page = 0;
-    private int size = 20;
+    private final int size = 20;
     private List<Item> restPage = Lists.newArrayList();
     private Item nextItem = null;
     private RESTv7Harvester endpoint;
 
+    /**
+     * Item iterator constructor 
+     * @param endpoint Restv7Harvester instance
+     */
     public ItemItr(RESTv7Harvester endpoint) {
         this.endpoint = endpoint;
     }
 
+    /**
+     * Check if exist a next item in the response and collect metadata
+     * @return 
+     */
     @Override
     public boolean hasNext() {
         if (!restPage.isEmpty()) {
@@ -40,6 +52,10 @@ public class ItemItr implements Iterator<Item> {
         return !restPage.isEmpty();
     }
 
+    /**
+     * Recover the next item into the repository
+     * @return Item object
+     */
     @Override
     public Item next() {
         Item get = restPage.get(0);
